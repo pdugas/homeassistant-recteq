@@ -1,0 +1,9 @@
+set_target:
+    description: Set target temperature.
+    fields:
+        entity_id:
+            description: Name of the rectec switch entity
+            example: "switch.smoker"
+        temperature:
+            description: Target temperature in °F
+            example: "275"

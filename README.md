@@ -38,7 +38,7 @@ switch:
 
 I get the `device_id` and `local_key` values from a log file on my Android
 phone that has recteq's app installed and configured to control the smoker
-already.. I connect it via USB to my laptop and allow MTP when prompted on the
+already. I connect it via USB to my laptop and allow MTP when prompted on the
 phone. My PC can now browse the phone's filesystem. I found a text file named
 `1.abj` in `.../Phone/Android/data/com.ym.rectecgrill/cache/`. In there, I
 found a line with a timestamp followed by the word `Business` followed by a
@@ -101,7 +101,7 @@ title: Smoker
 state_color: true
 ```
 
-I have a couple automations the tie it all together.
+I have a couple automations that tie it all together.
 
 ```yaml
 - id: '1601844809738'
@@ -140,9 +140,9 @@ I have a couple automations the tie it all together.
 
   ```yaml
   logger:
-  default: info
-  logs:
-    custom_components.recteq.switch: debug
+    default: info
+    logs:
+      custom_components.recteq.switch: debug
   ```
 
 * I'd like to explore using HA's configuration logic instead of relying on YAML

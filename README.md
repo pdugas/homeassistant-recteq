@@ -1,14 +1,21 @@
 # Recteq Integration for Home Assistant
 
-> **NOTE** - This isn't supported or approved by Recteq at all!
+> **NOTE** - This isn't supported or approved by [recteq][recteq] at all!
 
 This is a custom component for [Home Assistant](https://homeassistant.io) for
-monitoring and controlling a recteq smoker. I use it with my RT-590 which is
-**awesome** by the way. Once installed, it creates a _switch_ entity to turn
-the smoker on and off. It has attributes for the target and actual temperatures
-as well as the two probes.
+monitoring and controlling a [recteq][recteq] smoker. I use it with my RT-590
+which is **awesome** by the way. Once installed, it creates a _switch_ entity
+to turn the smoker on and off. It has attributes for the target and actual
+temperatures as well as the two probes.
 
 ![Screenshot](screenshot.png)
+
+At this time, the component can monitor the smoker and report the current
+status and attribute values. Toggling the power works too. Other things I'm
+working on are:
+
+* Set the target temperature
+* Would like to learn how to better integrate with HA's config system
 
 ## Installation
 
@@ -44,5 +51,6 @@ I'm Paul Dugas, <paul@dugas.cc>. I learned this was possible and based the code
 `switch.py` (and thus mine) appears to be based on prior work by
 [`fastcolors/localtuya`][localyuya]
 
+[rectec]: https://www.recteq.com/
 [rectec_status]: https://github.com/SDNick484/rectec_status
 [localtuya]: https://github.com/fastcolors/localtuya

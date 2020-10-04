@@ -1,7 +1,8 @@
 """Recteq Switch Component."""
 import logging
 
-import json
+from datetime import timedelta
+
 import pytuya
 
 import voluptuous as vol
@@ -13,7 +14,9 @@ from homeassistant.components.switch import (
 
 from homeassistant.const import (
     CONF_NAME,
-    CONF_HOST
+    CONF_HOST,
+    ATTR_ENTITY_ID,
+    ATTR_TEMPERATURE
 )
 
 import homeassistant.helpers.config_validation as cv
@@ -21,11 +24,13 @@ import homeassistant.helpers.config_validation as cv
 from time import time
 from threading import Lock
 
-from .const import __version__
+from .const import __version__, DOMAIN
 
 CONF_DEVICE_ID = 'device_id'
 CONF_LOCAL_KEY = 'local_key'
 CONF_PROTOCOL = 'protocol'
+
+MAX_RETRIES = 3
 
 DPS_POWER  = '1'
 DPS_TARGET = '102'
@@ -64,46 +69,66 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_PROTOCOL, default='3.3'): cv.string,
 })
 
-log = logging.getLogger(__name__)
+SERVICE_TARGET_SET_SCHEMA = vol.Schema({
+    vol.Required(ATTR_ENTITY_ID): cv.string,
+    vol.Required(ATTR_TEMPERATURE): cv.positive_int
+})
 
-def setup_platform(hass, config, add_devices, discovery_info=None):
-    log.info('Setting up %s version %s', __name__, __version__)
+SERVICE_TARGET_SET = "set_target"
 
-    switches = []
+_LOGGER = logging.getLogger(__name__)
 
-    device = TuyaDevice(
-        pytuya.OutletDevice(
-            config.get(CONF_DEVICE_ID),
-            config.get(CONF_HOST),
-            config.get(CONF_LOCAL_KEY)
-        ),
-        config.get(CONF_PROTOCOL)
-    )
+def setup_platform(hass, config, add, discovery_info=None):
 
-    switches.append(
-        Recteq(device, config.get(CONF_NAME))
-    )
+    data = hass.data.setdefault(DOMAIN, {})
+    devices = data.setdefault('devices', [])
 
-    add_devices(switches)
+    def handle_set_target_service(service):
+        for device in devices:
+            if device.entity_id == service.data[ATTR_ENTITY_ID]:
+                device.set_target(service.data[ATTR_TEMPERATURE])
+        
+    if not hass.services.has_service(DOMAIN, SERVICE_TARGET_SET):
+        hass.services.register(
+            DOMAIN,
+            SERVICE_TARGET_SET,
+            handle_set_target_service,
+            schema=SERVICE_TARGET_SET_SCHEMA
+        )
 
-class TuyaDevice:
-    """Wrapper for the Tuya device to cache the status."""
+    device = RecteqEntity(
+            CachedOutletDevice(
+                config.get(CONF_DEVICE_ID),
+                config.get(CONF_HOST),
+                config.get(CONF_LOCAL_KEY),
+                config.get(CONF_PROTOCOL)
+            ),
+            config.get(CONF_NAME, DOMAIN + '_' + config.get(CONF_LOCAL_KEY))
+        )
 
-    def __init__(self, device, protocol):
+    devices.append(device)
+
+    add([device])
+
+class CachedOutletDevice:
+    """Wrapper for a Tuya OutletDevice that caches the status."""
+
+    def __init__(self, device_id, host, local_key, protocol):
+        self._device = pytuya.OutletDevice(device_id, host, local_key)
+        self._device.set_version(float(protocol))
+
         self._cached_status = ''
         self._cached_status_time = 0
-        self._device = device
-        self._device.set_version(float(protocol))
+
         self._lock = Lock()
 
     def __get_status(self):
-        for i in range(3):
+        for i in range(MAX_RETRIES):
             try:
                 status = self._device.status()
-                log.debug('Status is ' + json.dumps(status))
                 return status
             except ConnectionError:
-                if i+1 == 3:
+                if i+1 == MAX_RETRIES:
                     raise ConnectionError("Failed to update status.")
 
     def set_status(self, state, switchid):
@@ -122,7 +147,7 @@ class TuyaDevice:
         finally:
             self._lock.release()
 
-class Recteq(SwitchEntity):
+class RecteqEntity(SwitchEntity):
     """The Recteq switch to turn the unit on and off and read attributes."""
 
     def __init__(self, device, name):
@@ -158,5 +183,8 @@ class Recteq(SwitchEntity):
     def update(self):
         self._status= self._device.status()
         self._state = self._status['dps'][DPS_POWER]
+
+    def set_target(self, temperature):
+        self._device.set_status(temperature, DPS_TARGET)
 
 # vim: set et sw=4 ts=4 :

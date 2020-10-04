@@ -4,3 +4,4 @@ version = __version__ = '%d.%d.%d' % version_tuple
 __author__ = 'pdugas'
 
 DOMAIN = 'recteq'
+

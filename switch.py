@@ -71,7 +71,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
     switches = []
 
-    device = RecteqDevice(
+    device = TuyaDevice(
         pytuya.OutletDevice(
             config.get(CONF_DEVICE_ID),
             config.get(CONF_HOST),
@@ -81,15 +81,12 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     )
 
     switches.append(
-        Recteq(
-            device,
-            config.get(CONF_NAME),
-        )
+        Recteq(device, config.get(CONF_NAME))
     )
 
     add_devices(switches)
 
-class RecteqDevice:
+class TuyaDevice:
     """Wrapper for the Tuya device to cache the status."""
 
     def __init__(self, device, protocol):

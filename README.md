@@ -48,8 +48,8 @@ hex-digits long and the `local_key` is 16.
 
 I'm Paul Dugas, <paul@dugas.cc>. I learned this was possible and based the code
 ***heavily*** on prior work by [`SDNick484/rectec_status`][rectec_status]. His
-`switch.py` (and thus mine) appears to be based on prior work by
-[`fastcolors/localtuya`][localtuya]
+`rt.py` appears to be based on prior work by [`fastcolors/localtuya`][localtuya]
+and is the basis of my [`switch.py`](switch.py)
 
 [recteq]: https://www.recteq.com/
 [rectec_status]: https://github.com/SDNick484/rectec_status

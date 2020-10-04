@@ -14,13 +14,13 @@ temperatures as well as the two probes.
 
 ## Installation
 
-I like to `git clone` create `~/config/custom_components/recteq/` but that's
-just me. Instead, you can drop `manifest.json` and `switch.py` into that
-directory
+I like to use `git clone` to create `~/config/custom_components/recteq/` but
+that's just me. You need to copy `*.json` and `*.py` from here to there.
 
 ## Configuration
 
-You need to add a switch for each rectec you want to connect.
+You need to add an entry under `switch:` in `configuration.yaml` for each
+rectec you want to connect.
 
 ```yaml
 switch:
@@ -30,7 +30,7 @@ switch:
     device_id: 00000000000000000000
     local_key: 0000000000000000
   - platform: recteq
-    name: Trill
+    name: Grill
     host: 192.168.0.124
     device_id: 11111111111111111111
     local_key: 1111111111111111
@@ -132,6 +132,21 @@ I have a couple automations the tie it all together.
       temperature: '{{ states(''input_number.smoker_target_temperature'') | int }}'
   mode: single
 ```
+## Notes
+
+* The code triggers an update after turning the rectec ON or OFF or setting the
+  target temperature but it seems to take a while for changes to be reflected
+  in the responses. Turn on logging in `configuration.yaml` to see the details.
+
+  ```yaml
+  logger:
+  default: info
+  logs:
+    custom_components.recteq.switch: debug
+  ```
+
+* I'd like to explore using HA's configuration logic instead of relying on YAML
+  since that appears to be where HS is going.
 
 ## Credits
 

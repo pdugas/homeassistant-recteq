@@ -30,7 +30,7 @@ CONF_DEVICE_ID = 'device_id'
 CONF_LOCAL_KEY = 'local_key'
 CONF_PROTOCOL = 'protocol'
 
-MAX_RETRIES = 3
+MAX_RETRIES = 2 # after the first failure
 
 DPS_POWER  = '1'
 DPS_TARGET = '102'
@@ -175,16 +175,30 @@ class RecteqEntity(SwitchEntity):
         return attrs
 
     def turn_on(self, **kwargs):
+        _LOGGER.debug("Switching %s ON", self._name)
         self._device.set_status(True, DPS_POWER)
+        self.schedule_update_ha_state(force_refresh=True)
 
     def turn_off(self, **kwargs):
+        _LOGGER.debug("Switching %s OFF", self._name)
         self._device.set_status(False, DPS_POWER)
+        self.schedule_update_ha_state(force_refresh=True)
 
     def update(self):
+        _LOGGER.debug("Polling status of %s", self._name)
         self._status= self._device.status()
         self._state = self._status['dps'][DPS_POWER]
+        _LOGGER.debug(
+            "%s is %s, target %s, actual %s",
+            self._name,
+            ('OFF', 'ON')[self._state],
+            self._status['dps'][DPS_TARGET],
+            self._status['dps'][DPS_ACTUAL]
+        )
 
     def set_target(self, temperature):
+        _LOGGER.debug("Setting target of %s to %d", self._name, temperature)
         self._device.set_status(temperature, DPS_TARGET)
+        self.schedule_update_ha_state(force_refresh=True)
 
 # vim: set et sw=4 ts=4 :

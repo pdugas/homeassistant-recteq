@@ -51,6 +51,6 @@ I'm Paul Dugas, <paul@dugas.cc>. I learned this was possible and based the code
 `switch.py` (and thus mine) appears to be based on prior work by
 [`fastcolors/localtuya`][localyuya]
 
-[rectec]: https://www.recteq.com/
+[recteq]: https://www.recteq.com/
 [rectec_status]: https://github.com/SDNick484/rectec_status
 [localtuya]: https://github.com/fastcolors/localtuya

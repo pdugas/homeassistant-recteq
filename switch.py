@@ -24,31 +24,35 @@ import homeassistant.helpers.config_validation as cv
 from time import time
 from threading import Lock
 
-from .const import __version__, DOMAIN
+from .const import (
+    __version__,
 
-CONF_DEVICE_ID = 'device_id'
-CONF_LOCAL_KEY = 'local_key'
-CONF_PROTOCOL = 'protocol'
+    ATTR_ACTUAL,
+    ATTR_ERROR1,
+    ATTR_ERROR2,
+    ATTR_ERROR3,
+    ATTR_POWER,
+    ATTR_PROBEA,
+    ATTR_PROBEB,
+    ATTR_TARGET,
+
+    CONF_DEVICE_ID,
+    CONF_LOCAL_KEY,
+    CONF_PROTOCOL,
+
+    DOMAIN,
+
+    DPS_ACTUAL,
+    DPS_ERROR1,
+    DPS_ERROR2,
+    DPS_ERROR3,
+    DPS_POWER,
+    DPS_PROBEA,
+    DPS_PROBEB,
+    DPS_TARGET,
+)
 
 MAX_RETRIES = 2 # after the first failure
-
-DPS_POWER  = '1'
-DPS_TARGET = '102'
-DPS_ACTUAL = '103'
-DPS_PROBEA = '105'
-DPS_PROBEB = '106'
-DPS_ERROR1 = '109'
-DPS_ERROR2 = '110'
-DPS_ERROR3 = '111'
-
-ATTR_POWER  = 'power'
-ATTR_TARGET = 'target'
-ATTR_ACTUAL = 'actual'
-ATTR_PROBEA = 'probea'
-ATTR_PROBEB = 'probeb'
-ATTR_ERROR1 = 'error1'
-ATTR_ERROR2 = 'error2'
-ATTR_ERROR3 = 'error3'
 
 DPS_ATTRS = {
     DPS_POWER:  ATTR_POWER,

@@ -8,9 +8,9 @@ which is **freakin' awesome** by the way. Once installed, it creates a _switch_ 
 to turn the smoker on and off. It provides attributes for the target and actual
 temperatures as well as the two probes.
 
-![Attributes](attributes.png)
+![Attributes](img/attributes.png)
 
-![Cards](cards.png)
+![Cards](img/cards.png)
 
 ## Installation
 
@@ -20,7 +20,7 @@ that's just me. You need to copy `*.json` and `*.py` from here to there.
 ## Configuration
 
 You need to add an entry under `switch:` in `configuration.yaml` for each
-rectec you want to connect.
+recteq you want to connect.
 
 ```yaml
 switch:
@@ -78,7 +78,7 @@ sensor:
 The `recteq.set_target` service is provided to set the target temperature in
 scripts or automations. I like to create an _input_number_ like the one below.
 
-![Input Number](input_number.png)
+![Input Number](img/input_number.png)
 
 Then I create a Glance Card like below. I can tap the the Power button to turn it on an off. Tapping the target temperature brings up the _more info_ panel where I can adjust the slider.
 
@@ -134,7 +134,7 @@ I have a couple automations that tie it all together.
 ```
 ## Notes
 
-* The code triggers an update after turning the rectec ON or OFF or setting the
+* The code triggers an update after turning the recteq ON or OFF or setting the
   target temperature but it seems to take a while for changes to be reflected
   in the responses. Turn on logging in `configuration.yaml` to see the details.
 

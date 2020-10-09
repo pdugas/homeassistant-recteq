@@ -1,161 +1,81 @@
-# Recteq Integration for Home Assistant
+# Home Assistant Recteq Integration
+
+![recteq](brands/logo.png)
 
 > **NOTE** - This isn't supported or approved by [recteq][recteq] at all!
 
-This is a custom component for [Home Assistant](https://homeassistant.io) for
-monitor and control [recteq][recteq] grills and smokers. I use it with my RT-590
-which is **freakin' awesome** by the way. Once installed, it creates a _switch_ entity
-to turn the smoker on and off. It provides attributes for the target and actual
-temperatures as well as the two probes.
+This is a [Home Assistant](https://homeassistant.io) custom component for
+[recteq][recteq] grills and smokers. It supports connecting to multiple grills
+creating a climate entity and a couple sensor entities (probe A and B) for each
+one.
 
-![Attributes](attributes.png)
+![climate](img/climate.png)
 
-![Cards](cards.png)
+![entities](img/entities.png)
 
 ## Installation
 
-I like to use `git clone` to create `~/config/custom_components/recteq/` but
-that's just me. You need to copy `*.json` and `*.py` from here to there.
+Download a copy of the [latest release][latest] and unpack the contents into 
+into `config/custom_components/recteq/` on your HA machine then restart it.
 
 ## Configuration
 
-You need to add an entry under `switch:` in `configuration.yaml` for each
-rectec you want to connect.
+This integration is configured using the UI only. Navigate to Configuration >
+Integrations and tap the red "+" button in the bottom right. Search for and
+select the "Rectec" entry. You'll get the dialog shown below. Enter the
+details for your grill and tap "Submit".
 
-```yaml
-switch:
-  - platform: recteq
-    name: Smoker
-    host: 192.168.0.123
-    device_id: 00000000000000000000
-    local_key: 0000000000000000
-  - platform: recteq
-    name: Grill
-    host: 192.168.0.124
-    device_id: 11111111111111111111
-    local_key: 1111111111111111
+![config](img/config.png)
+
+## IP Address, Device ID & Local Key
+
+The IP address if your grill can usually be found if you dig into the logs
+for your DHCP server. Poke around on your router for that.
+
+The [tuyapower project](https://github.com/jasonacox/tuyapower) can be used to
+scan for Tuya devices on your network. The controller in the rectecs is a Tuya
+device. The IP address is shows (10.0.0.100 below) is the one you want. The ID
+value in the output is the 20-digit device ID needed. The product value in the
+output **_is not the local key_**!
+
+```shell
+# python -m tuyapower
+TuyaPower (Tuya compatible smart plug scanner) [0.0.25] tinytuya [1.0.3]
+
+Scanning on UDP ports 6666 and 6667 for devices (15 retries)...
+
+FOUND Device [Valid payload]: 10.0.0.100
+    ID = 00000000000000000000, product = XXXXXXXXXXXXXXXX, Version = 3.3
+    Device Key required to poll for stats
+
+Scan Complete!  Found 1 devices.
 ```
 
-I get the `device_id` and `local_key` values from a log file on my Android
-phone that has recteq's app installed and configured to control the smoker
-already. I connect it via USB to my laptop and allow MTP when prompted on the
-phone. My PC can now browse the phone's filesystem. I found a text file named
-`1.abj` in `.../Phone/Android/data/com.ym.rectecgrill/cache/`. In there, I
-found a line with a timestamp followed by the word `Business` followed by a
-JSON object with `gwId` and `localKey` properties. These coorespond to the
-`device_id` and `local_key` values, respectively. The `device_id` is 20
-hex-digits long and the `local_key` is 16.
+[tuyapower](https://github.com/jasonacox/tuya) has some notes on how to get
+the local key but I found it on my Android phone pretty simply. I connect it
+via USB to my laptop, allow MTP access, then I can browse the filesystem on
+the phone. I found `Phone/Android/data/com.ym.rectecgrill/cache/1.abj` has
+logs from the app and includes JSON-formatted messages that include a 
+`localKey` property. That's the 16-digit local key value needed here.
 
-I like to setup template-sensors so the temperature attributes are more
-accessible:
+## License
 
-```yaml
-sensor:
-  - platform: template
-    sensors:
-      smoker_target_temperature:
-        friendly_name: Target Temperature
-        value_template: "{{ state_attr('switch.smoker', 'target') }}"
-        icon_template: mdi:thermometer
-        unit_of_measurement: °F
-      smoker_actual_temperature:
-        friendly_name: Actual Temperature
-        value_template: "{{ state_attr('switch.smoker', 'actual') }}"
-        icon_template: mdi:thermometer
-      smoker_probea_temperature:
-        friendly_name: Probe-A Temperature
-        value_template: "{{ state_attr('switch.smoker', 'probea') }}"
-        icon_template: mdi:thermometer
-      smoker_probeb_temperature:
-        friendly_name: Probe-B Temperature
-        value_template: "{{ state_attr('switch.smoker', 'probeb') }}"
-        icon_template: mdi:thermometer
-        unit_of_measurement: °F
-```
+Copyright (c) 2020 Paul Dugas
 
-## Service
+See [LICENSE](LICENSE) for details.
 
-The `recteq.set_target` service is provided to set the target temperature in
-scripts or automations. I like to create an _input_number_ like the one below.
+## Support
 
-![Input Number](input_number.png)
-
-Then I create a Glance Card like below. I can tap the the Power button to turn it on an off. Tapping the target temperature brings up the _more info_ panel where I can adjust the slider.
-
-```yaml
-type: glance
-entities:
-  - entity: switch.smoker
-    name: Power
-    tap_action:
-      action: toggle
-  - entity: input_number.smoker_target_temperature
-    name: Target
-  - entity: sensor.smoker_actual_temperature
-    name: Actual
-  - entity: sensor.smoker_probea_temperature
-    name: Probe-A
-  - entity: sensor.smoker_probeb_temperature
-    name: Probe-B
-title: Smoker
-state_color: true
-```
-
-I have a couple automations that tie it all together.
-
-```yaml
-- id: '1601844809738'
-  alias: Smoker Target Attribute Changed
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: switch.smoker
-    attribute: target
-  condition: []
-  action:
-  - service: input_number.set_value
-    entity_id: input_number.smoker_target_temperature
-    data:
-      value: '{{ state_attr(''switch.smoker'',''target'') | int }}'
-  mode: single
-- id: '1601844956599'
-  alias: Smoker Target Input Changed
-  description: ''
-  trigger:
-  - platform: state
-    entity_id: input_number.smoker_target_temperature
-  condition: []
-  action:
-  - service: recteq.set_target
-    data:
-      entity_id: switch.smoker
-      temperature: '{{ states(''input_number.smoker_target_temperature'') | int }}'
-  mode: single
-```
-## Notes
-
-* The code triggers an update after turning the rectec ON or OFF or setting the
-  target temperature but it seems to take a while for changes to be reflected
-  in the responses. Turn on logging in `configuration.yaml` to see the details.
-
-  ```yaml
-  logger:
-    default: info
-    logs:
-      custom_components.recteq.switch: debug
-  ```
-
-* I'd like to explore using HA's configuration logic instead of relying on YAML
-  since that appears to be where HS is going.
+Submit [issues](https://github.com/pdugas/homeassistant-recteq/issues) for
+defects, feature requests or questions. I'll try to help as I can.
 
 ## Credits
 
-I'm Paul Dugas, <paul@dugas.cc>. I learned this was possible and based the code
-***heavily*** on prior work by [`SDNick484/rectec_status`][rectec_status]. His
-`rt.py` appears to be based on prior work by [`fastcolors/localtuya`][localtuya]
-and is the basis of my original [`switch.py`](switch.py). I cleaned some things
-up and added a service to control the target temperature.
+I'm Paul Dugas, <paul@dugas.cc>. This is my first HA integration so be gentle!
+
+I learned this was possible from [`SDNick484/rectec_status`][rectec_status] and
+based the intial versions of the project on his examples.
 
 [recteq]: https://www.recteq.com/
+[latest]: https://github.com/pdugas/homeassistant-recteq/releases/latest
 [rectec_status]: https://github.com/SDNick484/rectec_status
-[localtuya]: https://github.com/fastcolors/localtuya
